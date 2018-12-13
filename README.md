@@ -12,13 +12,15 @@ npm install
 
 At the moment it is expected to already have downloaded a schema via introspection.
 ```
-Usage: ./index.js [-q] [-m] [-a] [-f filename_schema]|[-u http://URL [-H 'NAME1=VALUE1|NAME2=VALUE2']] [action_name]
+Usage: ./index.js [-q] [-m] [-a] [-f filename_schema]|[[-p] -u http://URL [-H 'NAME1=VALUE1|NAME2=VALUE2']] [action_name]
   -q : prints all queries
   -m : prints all mutations
   -f : schema path 
-  -u : url to download grapql schema
-  -H : Header to add. Use format like NAME1=VALUE1|NAME2=VALUE2
   -a : print all actions
+  -u : url to download grapql schema
+  -H : Header to add. Use format like NAME1=VALUE1|NAME2=VALUE2 for multiple pairs
+  -p : print downloaded schema [to save it somewhere use redirection >/output_schema.json ]
+
 
 ```
 
@@ -42,3 +44,4 @@ EG. :
 https://pokeapi-graphiql.herokuapp.com/
 
 ``` 
+s
