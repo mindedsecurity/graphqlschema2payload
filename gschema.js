@@ -158,8 +158,8 @@ GSchema.prototype.get_type = function get_type(type_obj) {
 var str = '';
 
 
-GSchema.prototype.print_arguments = function print_arguments(field_object) {
-  return (field_object.args && field_object.args.length > 0 ? '(' + field_object.args.map(el => {
+GSchema.prototype.print_arguments = function print_arguments(field_object, tabs) {
+  return (field_object.args && field_object.args.length > 0 ? '( ' + field_object.args.map(el => {
     var constructorName;
     if (el.type) {
       var required = (el.type+'').endsWith('!');
@@ -179,7 +179,7 @@ GSchema.prototype.print_arguments = function print_arguments(field_object) {
       }
 
     }
-    return el.name + ` #${required?"[Required]":""} ${inferred_type.name} \n`
+    return el.name + ` #${required?"[Required]":""} ${inferred_type.name} \n${tabs}`
   }) + ')' : '');
 }
 
@@ -208,16 +208,16 @@ GSchema.prototype.expand_type = function expand_type(type, level) {
 
       if (isGQEnum(field_object)) {
         debug("ENUM!", field_object + '<<<');
-        str += `${tabs}${field_object.name} #ENUM -> ${inferred_type.getValues().map(el => {
+        str += `${tabs}${field_object.name} #ENUM -> \n${inferred_type.getValues().map(el => {
           return `${tabs} # ${el.name}\n`
         }).join('')}`;
       } else if (isGQScalar(field_object)) {
         debug("!", field_object.name + '>>>>>>>>>>>>>>>>>>>>>>>>>>');
         
-        str += `${tabs}${field_object.name} #type: ${inferred_type.name}\n`;
+        str += `${tabs}${field_object.name} # ${inferred_type.name}\n`;
       } else /* if (isGQObject(field_object))*/ {
         debug("OBJECT!, entering in..", field_object)
-        str += `${tabs}${field_object.name} ${this.print_arguments(field_object)} {\n`;
+        str += `${tabs}${field_object.name} ${this.print_arguments(field_object, tabs)} {\n`;
         if (inferred_type)
           var tmp = this.expand_type(field_object, ++level);
         str += `${tabs}}\n`;
@@ -255,7 +255,7 @@ GSchema.prototype.build_entry = function build_entry(q_content) {
   if (true /*q_content.args && q_content.args.length === 0*/ ) {
     this.expand_type(q_content, 2);
     // var q_string = `\n{\n ${q_content.name} ${this.print_arguments(q_content)} {\n${str} }\n}`;
-    var q_string = printTopCall(q_content.name,this.print_arguments(q_content),str);
+    var q_string = printTopCall(q_content.name,this.print_arguments(q_content, '  '),str);
     str = '';
     return q_string;
   }
