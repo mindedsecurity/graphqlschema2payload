@@ -162,6 +162,7 @@ GSchema.prototype.print_arguments = function print_arguments(field_object) {
   return (field_object.args && field_object.args.length > 0 ? '(' + field_object.args.map(el => {
     var constructorName;
     if (el.type) {
+      var required = (el.type+'').endsWith('!');
       var inferred_type = this.getGQType(el);
       if (el.type.constructor.name.indexOf('Type') !== -1) {
         constructorName = el.type.constructor.name;
@@ -178,7 +179,7 @@ GSchema.prototype.print_arguments = function print_arguments(field_object) {
       }
 
     }
-    return el.name + ` #type ${inferred_type.name} \n`
+    return el.name + ` #${required?"[Required]":""} ${inferred_type.name} \n`
   }) + ')' : '');
 }
 
