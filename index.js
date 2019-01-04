@@ -34,6 +34,7 @@ var args = process.argv;
 var show_queries = get_argument("-q");
 var show_mutations = get_argument("-m");
 var print_all = get_argument("-a");
+var execute_request = get_argument("-r");
 var file_schema = get_argument('-f:');
 var remote_schema = get_argument('-u:');
 var print_schema = get_argument("-p");
@@ -47,6 +48,7 @@ if (get_argument("-h") || (!file_schema && !remote_schema)) {
   -H : Header to add. Use format like NAME1=VALUE1|NAME2=VALUE2
   -a : print all actions
   -p : print downloaded schema [to save it somewhere use redirection >/output_schema.json ]
+  -r : prints the POST payload to be used as template for testing - NB: No Arguments Value Given user needs to add them by hand -
 `);
   process.exit()
 }
@@ -91,6 +93,11 @@ if (get_argument("-h") || (!file_schema && !remote_schema)) {
   }
   if (print_all) {
     console.log(g.build_queries().join('\n'));
+  }
+  if(args[2] && execute_request){
+    const payload = JSON.stringify({variables: null,query:g.build_query(args[2])},null, 2);
+    console.log(payload);
+    process.exit(1);
   }
   if (args[2])
     console.log(g.build_query(args[2]));
