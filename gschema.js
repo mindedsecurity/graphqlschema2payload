@@ -41,17 +41,34 @@ var isGQObject = function isGQObject(obj) {
 }
 
 var isGQType = function isGQType(type) {
-  return (gqdef.isScalarType(type)
-    || gqdef.isObjectType(type)
-    || gqdef.isEnumType(type)
-    || gqdef.isInputObjectType(type)
-  //  || gqdef.isListType(type)
-  //|| gqdef.isInterfaceType(type) 
+  return (isScalarType(type)
+    || isObjectType(type)
+    || isEnumType(type)
+    || isInputObjectType(type)
+  //  || isListType(type)
+  //|| isInterfaceType(type) 
   //|| isUnionType(type)
-  //|| gqdef.isNonNullType(type)
+  //|| isNonNullType(type)
   );
 }
-//const SCALAR = ['Boolean', 'String', 'Int', 'Date', 'DateTime', 'Float', 'ID'];
+
+function isScalarType(type) {
+  return type instanceof gql.GraphQLScalarType;
+}
+function isObjectType(type) {
+  return type instanceof gql.GraphQLObjectType;
+}
+function isEnumType(type) {
+  return type instanceof gql.GraphQLEnumType;
+}
+function isInputObjectType(type) {
+  return type instanceof gql.GraphQLInputObjectType;
+}
+
+
+function printTopCall(query_name,query_arguments,content){
+  return `\n{\n ${query_name} ${query_arguments} {\n${content} }\n}`;
+}
 
 var GSchema = function(SCHEMA) {
   try {
@@ -99,7 +116,7 @@ GSchema.prototype.getGQType = function(obj) {
 // GSchema.prototype.get_types = function get_types() {
 //   return this.schema.getTypeMap();
 // }
-
+//
 // GSchema.prototype.get_scalar_types = function get_scalar_types() {
 //   return this.get_types().filter(e => {
 //     if (e.kind === 'SCALAR' || e.kind === 'ENUM') return e.name
@@ -111,14 +128,16 @@ GSchema.prototype.getGQType = function(obj) {
 
 */
 GSchema.prototype.get_queries = function get_queries() {
-  return this.schema.getQueryType().getFields();
+  const query = this.schema.getQueryType();
+  return query && query.getFields() || {};
 }
 
 /***
  returns setters 
 */
 GSchema.prototype.get_mutations = function get_mutations() {
-  return this.schema.getMutationType().getFields();
+  const mutation = this.schema.getMutationType()
+  return mutation && mutation.getFields() || {};
 }
 
 GSchema.prototype.get_type = function get_type(type_obj) {
@@ -130,11 +149,6 @@ GSchema.prototype.get_type = function get_type(type_obj) {
     var tmp_type = this.schema.getType(typename);
     if (!tmp_type && type_obj.type) {
       tmp_type = this.getGQType(type_obj);
-    // var tmp_oftype = type_obj.type;
-    // while (!tmp_type && tmp_oftype.ofType) {
-    //   tmp_oftype = tmp_oftype.ofType;
-    //   tmp_type = this.schema.getType(tmp_oftype);
-    // }
     }
     return tmp_type;
   }
@@ -164,7 +178,7 @@ GSchema.prototype.print_arguments = function print_arguments(field_object) {
       }
 
     }
-    return el.name + ` """type ${inferred_type.name} - ${constructorName} """`
+    return el.name + ` """type ${inferred_type.name} """`
   }) + ')' : '');
 }
 
@@ -174,18 +188,11 @@ GSchema.prototype.expand_type = function expand_type(type, level) {
   var tabs = ' '.repeat(level)
   var tmp_type = this.get_type(type);
 
-  // Start
-  //   var repl = require('repl')
-  // const r = repl.start('> ');
-  //  r.context.me = this;
-  //  r.context.type = type;
-  //End
   if (!tmp_type) {
     return;
   }
   if (this.visited_types.indexOf(tmp_type.name) !== -1) {
-    str += `${tabs}# ${tmp_type.name} type circular object, already expanded
-`;
+    str += `${tabs}# ${tmp_type.name} type circular object, already expanded\n`;
     return;
   }
 
@@ -200,32 +207,26 @@ GSchema.prototype.expand_type = function expand_type(type, level) {
 
       if (isGQEnum(field_object)) {
         debug("ENUM!", field_object + '<<<');
-        str += `${tabs}${field_object.name} #ENUM ->
-${inferred_type.getValues().map(el => {
-          return `${tabs} # ${el.name}
-`
+        str += `${tabs}${field_object.name} #ENUM -> ${inferred_type.getValues().map(el => {
+          return `${tabs} # ${el.name}\n`
         }).join('')}`;
       } else if (isGQScalar(field_object)) {
         debug("!", field_object.name + '>>>>>>>>>>>>>>>>>>>>>>>>>>');
-        debugger;
-        str += `${tabs}${field_object.name} #SCALAR type: ${inferred_type.name}
-`;
+        
+        str += `${tabs}${field_object.name} #type: ${inferred_type.name}\n`;
       } else /* if (isGQObject(field_object))*/ {
         debug("OBJECT!, entering in..", field_object)
-        str += `${tabs}${field_object.name} ${this.print_arguments(field_object)} { 
-`;
+        str += `${tabs}${field_object.name} ${this.print_arguments(field_object)} {\n`;
         if (inferred_type)
           var tmp = this.expand_type(field_object, ++level);
-        str += `${tabs}}
-`;
+        str += `${tabs}}\n`;
       }
 
     })
   } else if (isGQEnum(tmp_type)) {
-    str += `${tmp_type.getValues().map(el => {
-      return `${tabs} # ${el.name}
-`;
-    }).join('')}`
+    str += tmp_type.getValues().map(el => {
+      return `${tabs} # ${el.name}\n`;
+    }).join('')
     debug("ENUMERATION!>> ", tmp_type + '<<<')
     return
   } else {
@@ -245,11 +246,8 @@ GSchema.prototype.build_query = function build_query(name) {
 
   if (true /*q_content.args && q_content.args.length === 0*/ ) {
     this.expand_type(q_content, 2);
-    var q_string = `
-{
- ${q_content.name} ${this.print_arguments(q_content)} {
-${str} }
-}`;
+    // var q_string = `\n{\n ${q_content.name} ${this.print_arguments(q_content)} {\n${str} }\n}`;
+    var q_string = printTopCall(q_content.name,this.print_arguments(q_content),str);
     str = '';
     return q_string;
   }
