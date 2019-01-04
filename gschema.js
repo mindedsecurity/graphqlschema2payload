@@ -180,7 +180,7 @@ GSchema.prototype.print_arguments = function print_arguments(field_object, tabs)
 
     }
     return el.name + ` #${required?"[Required]":""} ${inferred_type.name} \n${tabs}`
-  }) + ')' : '');
+  }).join(' , ') + ')' : '');
 }
 
 
