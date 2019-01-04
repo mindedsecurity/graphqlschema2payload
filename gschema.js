@@ -178,7 +178,7 @@ GSchema.prototype.print_arguments = function print_arguments(field_object) {
       }
 
     }
-    return el.name + ` """type ${inferred_type.name} """`
+    return el.name + ` #type ${inferred_type.name} \n`
   }) + ')' : '');
 }
 
@@ -227,17 +227,24 @@ GSchema.prototype.expand_type = function expand_type(type, level) {
     str += tmp_type.getValues().map(el => {
       return `${tabs} # ${el.name}\n`;
     }).join('')
-    debug("ENUMERATION!>> ", tmp_type + '<<<')
+    debug("ENUMERATION>> ", tmp_type + '<<<')
     return
   } else {
-    debug("OTHER!!!!   >> ", tmp_type + '<<<')
+    debug("OTHER      >> ", tmp_type + '<<<')
   }
 //return "IL CONTENUTO";
 }
 
 GSchema.prototype.build_query = function build_query(name) {
-  var q_content = this.get_queries()[name] || this.get_mutations()[name];
-  this.visited_types = [];
+  var q_content = this.get_queries()[name];
+  if(!q_content){ 
+    return this.build_mutation(name);
+  }
+  return this.build_entry(q_content);
+}
+
+GSchema.prototype.build_entry = function build_entry(q_content) {
+    this.visited_types = [];
   //console.log(q_content)
   if (!q_content) {
     console.error(`Error: Can't find ${name} in this graphql Schema`);
@@ -251,10 +258,15 @@ GSchema.prototype.build_query = function build_query(name) {
     str = '';
     return q_string;
   }
-}
+};
+
+GSchema.prototype.build_mutation = function build_mutation(name) {
+  var q_content = this.get_mutations()[name];
+  return 'mutation ' + this.build_entry(q_content);
+};
 
 GSchema.prototype.build_queries = function build_query() {
-
-  return Object.keys(this.get_queries()).map(e => this.build_query(e));
-}
+  return Object.keys(this.get_queries()).map(e => this.build_query(e))
+    .concat(Object.keys(this.get_mutations()).map(e => this.build_mutation(e)));
+};
 module.exports = GSchema;
