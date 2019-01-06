@@ -1,0 +1,408 @@
+<!--
+The request to this GraphQL server provided the header "Accept: text/html"
+and as a result has been presented GraphiQL - an in-browser IDE for
+exploring GraphQL.
+
+If you wish to receive JSON, provide the header "Accept: application/json" or
+add "&raw" to the end of the URL within a browser.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>GraphiQL</title>
+  <meta name="robots" content="noindex" />
+  <meta name="referrer" content="origin" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    #graphiql {
+      height: 100vh;
+    }
+    /**************************\
+  Basic Modal Styles
+\**************************/
+
+.modal {
+    font-family: -apple-system,BlinkMacSystemFont,avenir next,avenir,helvetica neue,helvetica,ubuntu,roboto,noto,segoe ui,arial,sans-serif;
+  }
+  
+  .modal__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .modal__container {
+    background-color: #fff;
+    padding: 30px;
+    max-width: 600px;
+    max-height: 100vh;
+    width: 600px;
+    border-radius: 4px;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+  
+  .modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .modal__title {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.25;
+    color: #00449e;
+    box-sizing: border-box;
+  }
+  
+  .modal__close {
+    background: transparent;
+    border: 0;
+  }
+  
+  .modal__header .modal__close:before { content: "\2715"; }
+  
+  .modal__content {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+    color: rgba(0,0,0,.8);
+  }
+  
+  .modal__btn {
+    font-size: .875rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    background-color: #e6e6e6;
+    color: rgba(0,0,0,.8);
+    border-radius: .25rem;
+    border-style: none;
+    border-width: 0;
+    cursor: pointer;
+    -webkit-appearance: button;
+    text-transform: none;
+    overflow: visible;
+    line-height: 1.15;
+    margin: 0;
+    will-change: transform;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    transition: -webkit-transform .25s ease-out;
+    transition: transform .25s ease-out;
+    transition: transform .25s ease-out,-webkit-transform .25s ease-out;
+  }
+  
+  .modal__btn:focus, .modal__btn:hover {
+    -webkit-transform: scale(1.05);
+    transform: scale(1.05);
+  }
+  
+  .modal__btn-primary {
+    background-color: #00449e;
+    color: #fff;
+  }
+  
+  
+  
+  /**************************\
+    Demo Animation Style
+  \**************************/
+  @keyframes mmfadeIn {
+      from { opacity: 0; }
+        to { opacity: 1; }
+  }
+  
+  @keyframes mmfadeOut {
+      from { opacity: 1; }
+        to { opacity: 0; }
+  }
+  
+  @keyframes mmslideIn {
+    from { transform: translateY(15%); }
+      to { transform: translateY(0); }
+  }
+  
+  @keyframes mmslideOut {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10%); }
+  }
+  
+  .micromodal-slide {
+    display: none;
+  }
+  
+  .micromodal-slide.is-open {
+    display: block;
+  }
+  
+  .micromodal-slide[aria-hidden="false"] .modal__overlay {
+    animation: mmfadeIn .3s cubic-bezier(0.0, 0.0, 0.2, 1);
+  }
+  
+  .micromodal-slide[aria-hidden="false"] .modal__container {
+    animation: mmslideIn .3s cubic-bezier(0, 0, .2, 1);
+  }
+  
+  .micromodal-slide[aria-hidden="true"] .modal__overlay {
+    animation: mmfadeOut .3s cubic-bezier(0.0, 0.0, 0.2, 1);
+  }
+  
+  .micromodal-slide[aria-hidden="true"] .modal__container {
+    animation: mmslideOut .3s cubic-bezier(0, 0, .2, 1);
+  }
+  
+  .micromodal-slide .modal__container,
+  .micromodal-slide .modal__overlay {
+    will-change: transform;
+  }
+  
+  </style>
+  <link href="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
+  
+  <script src="//cdn.jsdelivr.net/es6-promise/4.0.5/es6-promise.auto.min.js"></script>
+  <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
+  <script src="//cdn.jsdelivr.net/react/15.4.2/react.min.js"></script>
+  <script src="//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.min.js"></script>
+
+  <script src="//cdn.jsdelivr.net/npm/micromodal/dist/micromodal.min.js"></script>
+
+</head>
+<body>
+  <div id="selectors">
+    <span><button onclick="MicroModal.show('modal-1');">New Schema Settings</button></span>
+    <span >Queries: <select id="queries"><option value="">Choose a Query</option></select> </span>
+    <span >Mutations: <select id="mutations"><option value="">Choose a Mutation</option></select></span>
+  </div>
+
+  <div class="modal micromodal-slide" id="modal-1" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+      <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+        <header class="modal__header">
+          <h2 class="modal__title" id="modal-1-title">
+            Fetch Schema
+          </h2>
+          <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+        </header>
+        <main class="modal__content" id="modal-1-content">
+          <b>Remote URL:</b><br><input autofocus="true" style="width: 500px" id="remote_schema" name="remote_schema" value='http://'><br>
+          <b>Headers (1 per line):</b> <br><textarea id="headers_area" tab="1" style="width: 500px" rows="10" ></textarea><br>
+        </main>
+        <footer class="modal__footer">
+          <button class="modal__btn modal__btn-primary" id="fetcher_button">Continue</button>
+          <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+<script>
+
+  function addQueryToEditor(ev) {
+    var val = ev.target.value;
+    fetch("/gschema/queryFetcher?name=" + encodeURIComponent(val), {
+        method: 'get',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }).then(response => {
+       return response.text()
+     }).then(text => {
+       ref.getQueryEditor().setValue(text);
+    });
+  }
+  function populateGSchemaDropDowns(object) {
+    var query_select = document.getElementById('queries'); 
+    var option;
+    var inputdata = object.queries ;
+    inputdata.forEach(function(item) {
+
+      option = document.createElement('option');
+
+      option.value = option.textContent = item;
+
+      query_select.appendChild(option);
+    });
+    query_select.addEventListener("change", addQueryToEditor);
+   
+////////////////////////////////////////////////////////////////////////////
+    var mutation_select =document.getElementById('mutations'); 
+    var option;
+    var inputdata =object.mutations ;
+
+    
+    inputdata.forEach(function(item) {
+
+      option = document.createElement('option');
+
+      option.value = option.textContent = item;
+
+      mutation_select.appendChild(option);
+    });
+    mutation_select.addEventListener("change", addQueryToEditor);
+    
+  }
+</script>
+<script>
+  MicroModal.init({
+      openTrigger: 'data-custom-open', // [3]
+      closeTrigger: 'data-custom-close', // [4]
+      disableScroll: true, // [5]
+      disableFocus: false, // [6]
+      awaitCloseAnimation: false, // [7]
+      debugMode: false // [8]
+    });
+
+  MicroModal.show('modal-1');
+
+ var fetcher_button = document.getElementById("fetcher_button");
+ var remote_schema_input = document.getElementById("remote_schema");
+ var headers_area = document.getElementById("headers_area");
+ fetcher_button.addEventListener("click",function (ev){
+   var headers = {};
+   headers_area.value.split('\n').forEach(el => {
+    var header_arr = el.split(/:(.*)/,2);
+    headers[header_arr[0]]=header_arr[1];
+  });
+  window.remote_url = remote_schema_input.value;
+  window.remote_headers = JSON.stringify(headers);
+  if(true){
+    MicroModal.close('modal-1');
+    launchGraphQL();
+    fetch("/gschema/schemaFetcher", {
+        method: 'post',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'remote_url=' + encodeURIComponent(window.remote_url) + '&headers=' + encodeURIComponent(window.remote_headers)
+      }).then(response => {
+       MicroModal.close('modal-1');
+       return response.json()
+     }).then(obj => {
+       populateGSchemaDropDowns(obj);
+    });
+  }/*else{
+   fetch("/schemaFetcher", {
+        method: 'post',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'remote_url=' + encodeURIComponent(window.remote_url) + '&headers=' + encodeURIComponent(window.remote_headers)
+      }).then(response => {
+       MicroModal.close('modal-1');
+       return response.json()
+     }).then(obj => {
+      window.gschema = new GSchema(obj);
+      launchGraphQL(window.gschema.schema);
+    });
+ }*/
+});
+</script>
+  <div id="graphiql">Loading...</div>
+  <script>
+
+    function launchGraphQL(argschema) {
+
+      // Collect the URL parameters
+      var parameters = {};
+      window.location.search.substr(1).split('&').forEach(function(entry) {
+        var eq = entry.indexOf('=');
+        if (eq >= 0) {
+          parameters[decodeURIComponent(entry.slice(0, eq))] = decodeURIComponent(entry.slice(eq + 1));
+        }
+      });
+
+      // Produce a Location query string from a parameter object.
+      function locationQuery(params) {
+        return '?' + Object.keys(params).filter(function(key) {
+            return Boolean(params[key]);
+          }).map(function(key) {
+            return encodeURIComponent(key) + '=' +
+              encodeURIComponent(params[key]);
+          }).join('&');
+      }
+
+      // Derive a fetch URL from the current URL, sans the GraphQL parameters.
+      var graphqlParamNames = {
+        query: true,
+        variables: true,
+        operationName: true
+      };
+
+      var otherParams = {};
+      for (var k in parameters) {
+        if (parameters.hasOwnProperty(k) && graphqlParamNames[k] !== true) {
+          otherParams[k] = parameters[k];
+        }
+      }
+      var fetchURL = locationQuery(otherParams);
+
+      // Defines a GraphQL fetcher using the fetch API.
+      function graphQLFetcher(graphQLParams) {
+        var remote_params = '&remote_url=' + encodeURIComponent(window.remote_url) + '&headers=' + encodeURIComponent(window.remote_headers);
+        return fetch("/fetcher" + fetchURL + remote_params, {
+          method: 'post',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(graphQLParams),
+          credentials: 'include',
+        }).then(function(response) {
+          return response.json();
+        });
+      }
+
+      // When the query and variables string is edited, update the URL bar so
+      // that it can be easily shared.
+      function onEditQuery(newQuery) {
+        parameters.query = newQuery;
+        updateURL();
+      }
+
+      function onEditVariables(newVariables) {
+        parameters.variables = newVariables;
+        updateURL();
+      }
+
+      function onEditOperationName(newOperationName) {
+        parameters.operationName = newOperationName;
+        updateURL();
+      }
+
+      function updateURL() {
+       // history.replaceState(null, null, locationQuery(parameters));
+      }
+
+      // Render <GraphiQL /> into the body.
+      window.ref = ReactDOM.render(
+        React.createElement(GraphiQL, {
+          schema: argschema,
+          fetcher: graphQLFetcher,
+          onEditQuery: onEditQuery,
+          onEditVariables: onEditVariables,
+          onEditOperationName: onEditOperationName,
+          query: undefined,
+          response: undefined,
+          variables: undefined,
+          operationName: undefined,
+        }),
+        document.getElementById('graphiql')
+      );
+    }
+  </script>
+</body>
+</html>
