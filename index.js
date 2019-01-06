@@ -1,7 +1,7 @@
 var DEBUG=process.env.DEBUG
 var repl = require('repl')
 
-var fetch = require('node-fetch')
+var fetch = require('node-fetch');
 var gschema = require("./gschema");
 
 const fs = require('fs');
@@ -76,7 +76,7 @@ if (get_argument("-h") || (!file_schema && !remote_schema)) {
       method: 'POST',
       headers: headers,
       body: JSON.stringify({"query":gschema.introspectionQuery})
-  });
+    });
     SCHEMA = await response.json();
     if(print_schema)
       console.log(JSON.stringify(SCHEMA,null,2))
