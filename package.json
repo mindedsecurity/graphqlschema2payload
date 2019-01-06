@@ -4,11 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --max_old_space_size=2000000 server/server.js",
+    "cli": "node --max_old_space_size=2000000 index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.16.4",
     "graphql": "^14.0.2",
     "node-fetch": "^2.3.0"
   }
