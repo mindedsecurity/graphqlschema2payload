@@ -35,6 +35,6 @@ function renderGraphiQL(data) {
   var variablesString = data.variables ? JSON.stringify(data.variables, null, 2) : null;
   var resultString = data.result ? JSON.stringify(data.result, null, 2) : null;
   var operationName = data.operationName;
-  
-  return readFileSync('./view/index.html').toString().replace(/\$\{GRAPHIQL_VERSION\}/g,GRAPHIQL_VERSION);
+
+  return readFileSync(__dirname + '/view/index.html').toString().replace(/\$\{GRAPHIQL_VERSION\}/g, GRAPHIQL_VERSION);
 }
