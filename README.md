@@ -1,6 +1,7 @@
 # graphqlschema2payload
-This sw gets a GraphQL Schema and is creates queries by resolving types in order to create tests
-that can be used for QA or pentesting.
+This little piece of software helps to recreate GraphQL payloads from a GraphQL Schema. 
+It works by visiting the Schema and resolving all types.
+Its main purpose is to create tests that can be used for QA or pentesting.
 
 ## Install
 
@@ -8,11 +9,38 @@ that can be used for QA or pentesting.
 npm install 
 ```
 
-## Usage:
+## Server Version 
 
+The server version integrates [GraphiQL](https://github.com/graphql/graphiql) interface and populates the editor with an automatically 
+generate template from the schema.
+
+1. Launch the server:
+```npm start```
+
+2. Visit http://localhost:4000/
+
+3. Add the remote URL and optional Headers (Ie. Authorization Bearer) separated by lines (eg. https://bahnql.herokuapp.com/graphql).
+![image](https://user-images.githubusercontent.com/1196560/50766648-50a7e000-127a-11e9-859f-d246cda20c16.png)
+
+4. Click Continue in order to let GraphiQL fetch the Schema via the local server. Local server also instantiates GSchema which automatically extracts templates from gqlSchema.
+
+5. Use the dropdown menus *Query* and *Mutations* to populate the editor with a specific template.
+
+![image](https://user-images.githubusercontent.com/1196560/50769657-ecd6e480-1284-11e9-8722-26926dafa92f.png)
+
+6. Edit the template with the arguments.
+
+7. Execute the query and get the response from the remote URL.
+
+![image](https://user-images.githubusercontent.com/1196560/50769782-6373e200-1285-11e9-8786-f1320a030bdc.png)
+
+
+## CLI Version Usage:
+
+The CLI version helps exploring the GQL Schema. 
 
 ```
-Usage: ./index.js [-r] [-q] [-m] [-a] [-f filename_schema]|[[-p] -u http://URL [-H 'NAME1=VALUE1|NAME2=VALUE2']] [action_name]
+Usage: node ./index.js [-r] [-q] [-m] [-a] [-f filename_schema]|[[-p] -u http://URL [-H 'NAME1=VALUE1|NAME2=VALUE2']] [action_name]
   -q : prints all queries
   -m : prints all mutations
   -f : schema path 
@@ -45,4 +73,3 @@ EG. :
 https://pokeapi-graphiql.herokuapp.com/
 
 ``` 
-s
