@@ -128,10 +128,14 @@ function remoteFetcher(req, res) {
     if (response.status === 200)
       return response.text();
     else {
+      console.log(response)
       throw Error('Status: ' + response.status);
     }
   }
-  ).then(text => sendResponse(res, "application/json", text)).catch(err => sendResponse(res, "application/data", err + ''));
+  ).then(text => sendResponse(res, "application/json", text)).catch(err => {
+    sendResponse(res, "application/data", err.stack + '');
+    console.error(err)
+  });
 }
 
 /**

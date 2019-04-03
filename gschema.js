@@ -175,6 +175,16 @@ GSchema.prototype.get_type = function get_type(type_obj) {
 }
 var str = '';
 
+function wrap_by_type(val,type) {
+  switch(type){
+    case "String":
+      return `"${val}"`;
+    case "Int":
+      return `-9999`; 
+    default: 
+      return `#${val}`; 
+  }
+}
 
 GSchema.prototype.print_arguments = function print_arguments(field_object, tabs) {
   return (field_object.args && field_object.args.length > 0 ? '( ' + field_object.args.map(el => {
@@ -197,7 +207,7 @@ GSchema.prototype.print_arguments = function print_arguments(field_object, tabs)
       }
 
     }
-    return el.name + `#PLACEH_${el.name}# #${required?"[Required]":""} ${inferred_type.name} \n${tabs}`
+    return el.name + `:${wrap_by_type("PLACEH_"+el.name,inferred_type.name)} #${required?"[Required]":""} ${inferred_type.name} \n${tabs}`
   }).join(' , ') + ')' : '');
 }
 
