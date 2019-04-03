@@ -48,7 +48,7 @@ Usage: node ./index.js [-r] [-q] [-m] [-a] [-f filename_schema]|[[-p] -u http://
   -u : url to download grapql schema
   -H : Header to add. Use format like NAME1=VALUE1|NAME2=VALUE2 for multiple pairs
   -p : print downloaded schema [to save it somewhere use redirection >/output_schema.json ]
-  -r : prints the POST payload to be used as template for testing - NB: No Arguments Value Given user needs to add them by hand -
+  -r : prints the POST payload to be used as template for testing - NB: No Arguments Value Given. user needs to add them by hand -
 
 ```
 
