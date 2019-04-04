@@ -88,7 +88,7 @@ function schemaFetcher(req, res) {
       "mutations": Object.keys(gschema_obj.get_mutations())
     });
     sendResponse(res, "application/json", response_obj);
-  }).catch(err => sendResponse(res, "text/plain", err + ''));
+  }).catch(err => sendResponse(res, "application/data", err + ''));
 }
 
 /**

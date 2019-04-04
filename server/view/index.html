@@ -177,22 +177,55 @@ add "&raw" to the end of the URL within a browser.
   }
   
   </style>
-  <link href="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
-  
-  <script src="//cdn.jsdelivr.net/es6-promise/4.0.5/es6-promise.auto.min.js"></script>
+  <!-- <link href="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
+  -->
+ <!-- <script src="//cdn.jsdelivr.net/es6-promise/4.0.5/es6-promise.auto.min.js"></script>
   <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
   <script src="//cdn.jsdelivr.net/react/15.4.2/react.min.js"></script>
   <script src="//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.min.js"></script>
 
   <script src="//cdn.jsdelivr.net/npm/micromodal/dist/micromodal.min.js"></script>
+-->
+<link href="/static/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
+  <script src="/static/es6-promise/4.0.5/es6-promise.auto.min.js"></script>
+  <script src="/static/fetch/0.9.0/fetch.min.js"></script>
+  <script src="/static/react/15.4.2/react.min.js"></script>
+  <script src="/static/react/15.4.2/react-dom.min.js"></script>
+  <script src="/static/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.min.js"></script>
 
+  <script src="/static/npm/micromodal/dist/micromodal.min.js"></script>
+
+<style>
+  /* -------------------- Select Box Styles: stackoverflow.com Method */
+/* -------------------- Source: http://stackoverflow.com/a/5809186 */
+select.soflow, select#soflow-color {
+   -webkit-appearance: button;
+   -webkit-border-radius: 2px;
+   -webkit-box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+   -webkit-padding-end: 20px;
+   -webkit-padding-start: 2px;
+   -webkit-user-select: none;
+   background-image: url(/static/arrowdown.png), -webkit-linear-gradient(#FAFAFA, #F4F4F4 40%, #E5E5E5);
+   background-position: 97% center;
+   background-repeat: no-repeat;
+   border: 1px solid #AAA;
+   color: #555;
+   font-size: inherit;
+   margin: 20px;
+   overflow: hidden;
+   padding: 5px 10px;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+   width: 300px;
+}
+</style>
 </head>
 <body>
   <div id="selectors">
-    <span><button onclick="MicroModal.show('modal-1');">New Schema Settings</button></span>
-    <span >Queries: <select id="queries"><option value="">Choose a Query</option></select> </span>
-    <span >Mutations: <select id="mutations"><option value="">Choose a Mutation</option></select></span>
+    <span><button  class="modal__btn modal__btn-primary"  onclick="MicroModal.show('modal-1');">New Schema Settings</button></span>
+    <span >Queries: <select class="soflow"  id="queries" ><option value="">Choose a Query</option></select> </span>
+    <span >Mutations: <select  class="soflow" id="mutations"><option value="">Choose a Mutation</option></select></span>
   </div>
 
   <div class="modal micromodal-slide" id="modal-1" aria-hidden="true">
@@ -233,32 +266,34 @@ add "&raw" to the end of the URL within a browser.
     var query_select = document.getElementById('queries'); 
     var option;
     var inputdata = object.queries ;
-    inputdata.forEach(function(item) {
+    query_select.innerHTML='';
+    if(inputdata){
+      inputdata.forEach(function(item) {
 
-      option = document.createElement('option');
+        option = document.createElement('option');
 
-      option.value = option.textContent = item;
+        option.value = option.textContent = item;
 
-      query_select.appendChild(option);
-    });
-    query_select.addEventListener("change", addQueryToEditor);
-   
+        query_select.appendChild(option);
+      });
+      query_select.addEventListener("change", addQueryToEditor);
+    }
 ////////////////////////////////////////////////////////////////////////////
     var mutation_select =document.getElementById('mutations'); 
     var option;
     var inputdata =object.mutations ;
+    mutation_select.innerHTML='';
+    if(inputdata){
+      inputdata.forEach(function(item) {
 
-    
-    inputdata.forEach(function(item) {
+        option = document.createElement('option');
 
-      option = document.createElement('option');
+        option.value = option.textContent = item;
 
-      option.value = option.textContent = item;
-
-      mutation_select.appendChild(option);
-    });
-    mutation_select.addEventListener("change", addQueryToEditor);
-    
+        mutation_select.appendChild(option);
+      });
+      mutation_select.addEventListener("change", addQueryToEditor);
+   } 
   }
 </script>
 <script>
@@ -293,9 +328,17 @@ add "&raw" to the end of the URL within a browser.
         body: 'remote_url=' + encodeURIComponent(window.remote_url) + '&headers=' + encodeURIComponent(window.remote_headers)
       }).then(response => {
        MicroModal.close('modal-1');
-       return response.json()
+       var content_type = response.headers.get('Content-Type');
+       if(content_type.indexOf("application/json")!==-1)
+        return response.json()
+       else  return response.text()
      }).then(obj => {
-       populateGSchemaDropDowns(obj);
+       if(typeof obj==='object') 
+         populateGSchemaDropDowns(obj);
+       else{
+        populateGSchemaDropDowns({queries:["Error in Loading GQL"],mutations:["Error in Loading GQL"]});
+        /// Deal with the error
+       }
     });
   }/*else{
    fetch("/schemaFetcher", {
