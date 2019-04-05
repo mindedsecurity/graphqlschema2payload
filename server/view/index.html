@@ -266,7 +266,7 @@ select.soflow, select#soflow-color {
     var query_select = document.getElementById('queries'); 
     var option;
     var inputdata = object.queries ;
-    query_select.innerHTML='';
+    query_select.innerHTML='<option value="">Choose a Query</option>';
     if(inputdata){
       inputdata.forEach(function(item) {
 
@@ -282,7 +282,7 @@ select.soflow, select#soflow-color {
     var mutation_select =document.getElementById('mutations'); 
     var option;
     var inputdata =object.mutations ;
-    mutation_select.innerHTML='';
+    mutation_select.innerHTML='<option value="">Choose a Mutation</option>';
     if(inputdata){
       inputdata.forEach(function(item) {
 
