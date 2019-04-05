@@ -8,7 +8,7 @@
     "start": "node --max_old_space_size=2000000 server/server.js",
     "cli": "node --max_old_space_size=2000000 index.js"
   },
-  "author": "",
+  "author": "Stefano Di Paola <stefano.dipaola@mindedsecurity.com> ",
   "license": "ISC",
   "dependencies": {
     "express": "^4.16.4",
