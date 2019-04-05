@@ -181,6 +181,8 @@ function wrap_by_type(val,type) {
       return `"${val}"`;
     case "Int":
       return `-9999`; 
+    case "Boolean":
+      return `true`; 
     default: 
       return `#${val}`; 
   }
